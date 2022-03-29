@@ -29,6 +29,18 @@ func getStringBetween(value string, a string, b string) string {
 	return value[posFirstAdjusted:posLast]
 }
 
+// func CharIsPartOfIPAddress(s string) bool {
+//     for i, r := range s {
+//         if (r >= 48 && r <= 57) || (r == ':') || (r == '.') {
+// 			i++
+//         }
+// 		else {
+// 			&s = &s+1
+// 		}
+//     }
+//     return true
+// }
+
 func testScrapeFreeProxy() {
 	c := colly.NewCollector()
 
@@ -69,6 +81,46 @@ func testScrapeFreeProxy() {
 	c.Visit("http://free-proxy.cz/en/proxylist/country/FR/https/ping/all")
 }
 
+func scrapeProxynova() {
+
+	c := colly.NewCollector()
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting", r.URL)
+	})
+
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Println(r.StatusCode)
+	})
+
+	i := 0
+	var ipAddress string
+	c.OnHTML("tbody", func(e *colly.HTMLElement) {
+		e.ForEach("tr", func(_ int, trElem *colly.HTMLElement) {
+			i = 0
+			trElem.ForEachWithBreak("td", func(_ int, tdElem *colly.HTMLElement) bool {
+				if !strings.Contains(tdElem.Text, "google") {
+					i++
+					if i == 1 {
+						ipAddress = getStringBetween(tdElem.Text, `(`, `)`)
+						ipAddress = strings.ReplaceAll(ipAddress, " ", "")
+						ipAddress = strings.ReplaceAll(ipAddress, "'", "")
+						ipAddress = strings.ReplaceAll(ipAddress, "+", "")
+						ipAddress += ":"
+					}
+					if i == 2 {
+						ipAddress += (strings.ReplaceAll(strings.ReplaceAll(tdElem.Text, " ", ""), "\n", ""))
+						fmt.Println(ipAddress)
+						return false
+					}
+				}
+				return true
+			})
+		})
+	})
+
+	c.Visit("https://proxynova.com/proxy-server-list/country-fr")
+}
+
 func scrapeIPInfo() {
 	pURL, _ := url.Parse(`http://85.25.198.20:5566`)
 	httpClient := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(pURL)}}
@@ -85,6 +137,7 @@ func scrapeIPInfo() {
 }
 
 func main() {
-	testScrapeFreeProxy()
+	// testScrapeFreeProxy()
+	scrapeProxynova()
 	// scrapeIPInfo()
 }
