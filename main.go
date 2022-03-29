@@ -69,6 +69,43 @@ func testScrapeFreeProxy() {
 	c.Visit("http://free-proxy.cz/en/proxylist/country/FR/https/ping/all")
 }
 
+func scrapeProxynova() {
+
+	c := colly.NewCollector()
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting", r.URL)
+	})
+
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Println(r.StatusCode)
+	})
+
+	i := 0
+	var ipAdress string
+	c.OnHTML("tbody", func(e *colly.HTMLElement) {
+		e.ForEach("tr", func(_ int, trElem *colly.HTMLElement) {
+			i = 0
+			trElem.ForEachWithBreak("td", func(_ int, tdElem *colly.HTMLElement) bool {
+				if !strings.Contains(tdElem.Text, "google") {
+					i++
+					if i == 1 {
+						ipAdress = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(tdElem.Text, " ", ""), "document.write", ""), "')", ""), "('", ""), "'+'", ""), ";", ""), "\n", "")
+						ipAdress += ":"
+					}
+					if i == 2 {
+						ipAdress += (strings.ReplaceAll(strings.ReplaceAll(tdElem.Text, " ", ""), "\n", ""))
+						fmt.Println(ipAdress)
+						return false
+					}
+				}
+				return true
+			})
+		})
+	})
+
+	c.Visit("https://proxynova.com/proxy-server-list/country-fr")
+}
+
 func scrapeIPInfo() {
 	pURL, _ := url.Parse(`http://85.25.198.20:5566`)
 	httpClient := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(pURL)}}
@@ -86,5 +123,6 @@ func scrapeIPInfo() {
 
 func main() {
 	testScrapeFreeProxy()
+	scrapeProxynova()
 	// scrapeIPInfo()
 }
