@@ -9,9 +9,9 @@ import (
 )
 
 func scrapeIPInfo() {
-	pURL, _ := url.Parse(`http://85.25.198.20:5566`)
+	pURL, _ := url.Parse(`http://193.31.27.123:80`)
 	httpClient := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(pURL)}}
-	resp, err := httpClient.Get("https://www.ipinfo.io")
+	resp, err := httpClient.Get("http://www.ipinfo.io")
 	if err != nil {
 		log.Fatalln(err)
 	}
