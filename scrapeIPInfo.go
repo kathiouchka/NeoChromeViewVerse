@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -27,5 +28,13 @@ func scrapeIPInfo(IPAddress string) (string, bool) {
 		return "", bool
 	}
 	fmt.Println(string(b))
+	if string(b)[0] != '{' {
+		bool = true
+		return "", bool
+	}
+	if strings.Contains(string(b), "error") {
+		bool = true
+		return "", bool
+	}
 	return IPAddress, false
 }
